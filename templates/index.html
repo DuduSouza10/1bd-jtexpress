@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>Relatório 1BD</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-wrap">
+        <div class="logos" aria-label="J&T Express e TikTok">
+          <img class="logo-jt" src="{{ url_for('static', filename='assets/jt-logo.svg') }}" alt="J&T Express" />
+          <span class="logo-divider"></span>
+          <img class="logo-tiktok" src="{{ url_for('static', filename='assets/tiktok-logo.png') }}" alt="TikTok" />
+        </div>
+        <div class="title-block">
+          <div class="eyebrow">OPERAÇÃO • 1BD</div>
+          <h1>Relatório 1BD</h1>
+          <p>Assinatura, chamados e desempenho por RM e base de entrega.</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="last-update" id="lastUpdate">Carregando dados...</div>
+        <button class="btn btn-primary" id="openUpdateModal" type="button">
+          <span class="btn-icon">↻</span> Atualizar dados
+        </button>
+      </div>
+    </header>
+
+    <nav class="tabs" aria-label="Navegação principal">
+      <button class="tab active" data-tab="dashboard">Dashboard</button>
+      <button class="tab" data-tab="update">Atualizar dados</button>
+    </nav>
+
+    <main>
+      <section class="tab-panel active" id="tab-dashboard">
+        <section class="filter-card">
+          <div class="filter-head">
+            <div>
+              <span class="section-kicker">FILTROS</span>
+              <h2>Refine a análise</h2>
+            </div>
+            <button class="btn btn-ghost" id="clearFilters" type="button">Limpar filtros</button>
+          </div>
+          <div class="filters-grid">
+            <label class="field"><span>Regional</span><select id="filterRegional"><option value="">Todas</option></select></label>
+            <label class="field"><span>RM</span><select id="filterRM"><option value="">Todos</option></select></label>
+            <label class="field"><span>Base de Entrega</span><select id="filterBase"><option value="">Todas</option></select></label>
+            <label class="field"><span>Status do Chamado</span><select id="filterStatus"><option value="">Todos</option></select></label>
+            <label class="field"><span>Assinatura</span><select id="filterAssinado"><option value="">Todos</option><option value="Sim">Assinado</option><option value="Não">Não assinado</option></select></label>
+            <label class="field"><span>Tempo de Assinatura</span><select id="filterTime"><option value="">Todas as faixas</option><option value="sem">Sem assinatura</option><option value="0-6">Até 6h</option><option value="6-12">6–12h</option><option value="12-24">12–24h</option><option value="24-48">24–48h</option><option value="48+">Acima de 48h</option></select></label>
+            <label class="field"><span>Data inicial</span><input id="filterDateFrom" type="date" /></label>
+            <label class="field"><span>Data final</span><input id="filterDateTo" type="date" /></label>
+          </div>
+          <div class="active-filter-note" id="activeFilterNote">Exibindo toda a base.</div>
+        </section>
+
+        <section class="kpi-grid">
+          <article class="kpi-card kpi-red">
+            <div class="kpi-top"><span class="kpi-label">Quantidade de 1BD</span><span class="kpi-icon">1B</span></div>
+            <strong id="kpi1bd">—</strong>
+            <span class="kpi-foot" id="kpi1bdFoot">registros no período filtrado</span>
+          </article>
+          <article class="kpi-card kpi-dark">
+            <div class="kpi-top"><span class="kpi-label">Pacotes Entregues</span><span class="kpi-icon">✓</span></div>
+            <strong id="kpiDelivered">—</strong>
+            <span class="kpi-foot" id="kpiDeliveredFoot">remessas únicas assinadas</span>
+          </article>
+          <article class="kpi-card kpi-cyan">
+            <div class="kpi-top"><span class="kpi-label">Chamados em Aberto</span><span class="kpi-icon">!</span></div>
+            <strong id="kpiOpen">—</strong>
+            <span class="kpi-foot" id="kpiOpenFoot">pendentes ou em processamento</span>
+          </article>
+        </section>
+
+        <section class="insight-strip">
+          <div><span>Taxa de assinatura</span><strong id="insightSignedRate">—</strong></div>
+          <div><span>Tempo médio até assinatura</span><strong id="insightAvgTime">—</strong></div>
+          <div><span>Bases no filtro</span><strong id="insightBases">—</strong></div>
+          <div><span>RMs no filtro</span><strong id="insightRMs">—</strong></div>
+        </section>
+
+        <section class="charts-grid charts-grid-main">
+          <article class="panel chart-panel chart-wide">
+            <div class="panel-head">
+              <div><span class="section-kicker">DESEMPENHO</span><h3>Taxa de assinatura por RM</h3></div>
+              <span class="panel-note">Clique em uma barra para filtrar</span>
+            </div>
+            <div class="chart-wrap chart-tall"><canvas id="rmChart"></canvas></div>
+          </article>
+          <article class="panel chart-panel">
+            <div class="panel-head"><div><span class="section-kicker">STATUS</span><h3>Chamados</h3></div></div>
+            <div class="chart-wrap"><canvas id="statusChart"></canvas></div>
+          </article>
+        </section>
+
+        <section class="charts-grid">
+          <article class="panel chart-panel">
+            <div class="panel-head"><div><span class="section-kicker">BASES</span><h3>Top 10 por quantidade de 1BD</h3></div><span class="panel-note">Clique para filtrar</span></div>
+            <div class="chart-wrap chart-tall"><canvas id="baseChart"></canvas></div>
+          </article>
+          <article class="panel chart-panel">
+            <div class="panel-head"><div><span class="section-kicker">ASSINATURA</span><h3>Tempo até assinatura</h3></div></div>
+            <div class="chart-wrap chart-tall"><canvas id="timeChart"></canvas></div>
+          </article>
+        </section>
+
+        <section class="panel trend-panel">
+          <div class="panel-head">
+            <div><span class="section-kicker">EVOLUÇÃO</span><h3>1BD e assinaturas por data de registro</h3></div>
+            <span class="panel-note">Baseado na data de registro do chamado</span>
+          </div>
+          <div class="chart-wrap trend-chart"><canvas id="trendChart"></canvas></div>
+        </section>
+
+        <section class="panel table-panel">
+          <div class="panel-head table-head">
+            <div><span class="section-kicker">DETALHAMENTO</span><h3>Ranking por Base de Entrega</h3></div>
+            <div class="table-tools">
+              <input id="tableSearch" class="search-input" type="search" placeholder="Buscar base ou RM..." />
+              <button class="btn btn-secondary" id="exportCsv" type="button">Exportar CSV</button>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th><th>Base</th><th>Regional</th><th>RM</th><th>1BD</th><th>Assinados</th><th>Não assinados</th><th>Taxa</th><th>Em aberto</th><th>Tempo médio</th>
+                </tr>
+              </thead>
+              <tbody id="rankingBody"></tbody>
+            </table>
+          </div>
+          <div class="table-footer" id="tableFooter"></div>
+        </section>
+      </section>
+
+      <section class="tab-panel" id="tab-update">
+        <div class="update-layout">
+          <section class="panel update-card">
+            <div class="update-icon">↻</div>
+            <span class="section-kicker">ATUALIZAÇÃO</span>
+            <h2>Atualizar base do Relatório 1BD</h2>
+            <p>Envie a nova planilha <strong>.xlsx</strong>. A troca só é aplicada após validação da estrutura e confirmação da senha.</p>
+
+            <form id="updateFormPage" class="update-form">
+              <label class="drop-zone" id="dropZonePage">
+                <input type="file" name="file" accept=".xlsx" required />
+                <span class="drop-icon">＋</span>
+                <strong>Selecionar planilha</strong>
+                <small>ou arraste o arquivo para esta área</small>
+                <span class="selected-file" data-file-name>Nenhum arquivo selecionado</span>
+              </label>
+              <label class="field password-field"><span>Senha para aplicar a atualização</span><input type="password" name="password" autocomplete="current-password" placeholder="Digite a senha" required /></label>
+              <button class="btn btn-primary btn-large" type="submit">Validar e atualizar dados</button>
+            </form>
+            <div class="form-message" data-form-message></div>
+          </section>
+
+          <aside class="update-side">
+            <section class="panel source-card">
+              <span class="section-kicker">FONTE ATUAL</span>
+              <h3 id="sourceFile">1B_GERAL.xlsx</h3>
+              <dl>
+                <div><dt>Registros</dt><dd id="sourceRows">—</dd></div>
+                <div><dt>Período</dt><dd id="sourceRange">—</dd></div>
+                <div><dt>Última atualização</dt><dd id="sourceUpdated">—</dd></div>
+              </dl>
+            </section>
+            <section class="panel rules-card">
+              <span class="section-kicker">REGRAS DE IMPORTAÇÃO</span>
+              <h3>Antes de aplicar</h3>
+              <ul>
+                <li>A aba <strong>detalhes</strong> é obrigatória.</li>
+                <li>RM, Base de Entrega, Tempo de Assinatura e Se foi assinado precisam existir.</li>
+                <li>A senha é obrigatória; sem ela nenhuma alteração é salva.</li>
+                <li>O arquivo atual é copiado automaticamente para backup antes da troca.</li>
+              </ul>
+            </section>
+          </aside>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="updateModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="updateModalTitle">
+      <button class="modal-close" id="closeUpdateModal" type="button" aria-label="Fechar">×</button>
+      <span class="section-kicker">ATUALIZAR DADOS</span>
+      <h2 id="updateModalTitle">Importar nova planilha 1BD</h2>
+      <p>A planilha será validada antes de substituir os dados atuais.</p>
+      <form id="updateFormModal" class="update-form compact">
+        <label class="drop-zone" id="dropZoneModal">
+          <input type="file" name="file" accept=".xlsx" required />
+          <span class="drop-icon">＋</span>
+          <strong>Adicionar planilha</strong>
+          <small>Arquivo .xlsx obrigatório</small>
+          <span class="selected-file" data-file-name>Nenhum arquivo selecionado</span>
+        </label>
+        <label class="field password-field"><span>Senha</span><input type="password" name="password" autocomplete="current-password" placeholder="Digite a senha" required /></label>
+        <button class="btn btn-primary btn-large" type="submit">Aplicar atualização</button>
+      </form>
+      <div class="form-message" data-form-message></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
