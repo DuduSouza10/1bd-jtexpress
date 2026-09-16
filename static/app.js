@@ -76,6 +76,10 @@ const I18N = {
     performance: 'DESEMPENHO',
     signatureRateByRM: 'Taxa de assinatura por RM',
     clickBarToFilter: 'Clique em uma barra para filtrar',
+    rmBreakdownAria: 'Detalhamento de volume por RM',
+    rmBreakdownKicker: 'VOLUME',
+    rmBreakdownTitle: 'Dados por RM',
+    rmBreakdownHint: '1BD, assinados e não assinados',
     status: 'STATUS',
     tickets: 'Chamados',
     bases: 'BASES',
@@ -243,6 +247,10 @@ const I18N = {
     performance: '表现',
     signatureRateByRM: '各 RM 签收率',
     clickBarToFilter: '点击柱状图进行筛选',
+    rmBreakdownAria: '按 RM 查看数量明细',
+    rmBreakdownKicker: '数量',
+    rmBreakdownTitle: 'RM 数据',
+    rmBreakdownHint: '1BD、已签收和未签收',
     status: '状态',
     tickets: '工单',
     bases: '网点',
@@ -592,9 +600,77 @@ function renderCharts(){
 function renderRMChart(rows){
   destroyChart('rm');
   const g=groupBy(rows,'rm');
-  const items=[...g].map(([name,rs])=>({name,total:rs.length,signed:rs.filter(r=>normalizePlain(r.assinado)==='sim').length})).sort((a,b)=>(b.signed/b.total)-(a.signed/a.total));
+  const items=[...g].map(([name,rs])=>{
+    const signed=rs.filter(r=>normalizePlain(r.assinado)==='sim').length;
+    return {name,total:rs.length,signed,unsigned:rs.length-signed,rate:rs.length?signed/rs.length*100:0};
+  }).sort((a,b)=>b.rate-a.rate || b.total-a.total);
+
+  renderRMBreakdown(items);
+
   const ctx=$('rmChart');
-  state.charts.rm=new Chart(ctx,{type:'bar',data:{labels:items.map(x=>x.name),datasets:[{label:t('chartSignatureRate'),data:items.map(x=>x.total?x.signed/x.total*100:0),backgroundColor:'#e10618',borderRadius:7,borderSkipped:false,barThickness:18}]},options:{indexAxis:'y',maintainAspectRatio:false,responsive:true,plugins:{legend:{display:false},tooltip:{...commonTooltip(),callbacks:{label:c=>`${pct(c.raw)} • ${items[c.dataIndex].signed}/${items[c.dataIndex].total} ${t('chartSigned')}`}}},scales:{x:{beginAtZero:true,max:100,grid:{color:'#f0f1f4'},ticks:{callback:v=>`${v}%`}},y:{grid:{display:false},ticks:{font:{size:11}}}},onClick:(_,els)=>{if(els.length){$('filterRM').value=items[els[0].index].name;applyFilters();}}}});
+  state.charts.rm=new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:items.map(x=>x.name),
+      datasets:[{
+        label:t('chartSignatureRate'),
+        data:items.map(x=>x.rate),
+        backgroundColor:'#e10618',
+        hoverBackgroundColor:'#c90016',
+        borderRadius:8,
+        borderSkipped:false,
+        barThickness:18
+      }]
+    },
+    options:{
+      indexAxis:'y',maintainAspectRatio:false,responsive:true,
+      layout:{padding:{right:8}},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          ...commonTooltip(),
+          callbacks:{
+            label:c=>[
+              `${t('chartSignatureRate')}: ${pct(c.raw)}`,
+              `1BD: ${formatNumber(items[c.dataIndex].total)}`,
+              `${t('signedPlural')}: ${formatNumber(items[c.dataIndex].signed)}`,
+              `${t('unsignedPlural')}: ${formatNumber(items[c.dataIndex].unsigned)}`
+            ]
+          }
+        }
+      },
+      scales:{
+        x:{beginAtZero:true,max:100,grid:{color:'#f0f1f4'},ticks:{callback:v=>`${v}%`}},
+        y:{grid:{display:false},ticks:{font:{size:11},padding:8}}
+      },
+      onClick:(_,els)=>{if(els.length){$('filterRM').value=items[els[0].index].name;applyFilters();}}
+    }
+  });
+}
+
+function renderRMBreakdown(items){
+  const box=$('rmBreakdownList');
+  if(!box) return;
+  if(!items.length){
+    box.innerHTML=`<div class="rm-breakdown-empty">${t('noRecordsFound')}</div>`;
+    return;
+  }
+  box.innerHTML=items.map(item=>`
+    <button type="button" class="rm-breakdown-row" data-rm="${escapeHtml(item.name)}" title="${escapeHtml(t('clickBarToFilter'))}">
+      <div class="rm-breakdown-rowtop">
+        <strong>${escapeHtml(item.name)}</strong>
+        <span class="rm-rate-pill ${rateClass(item.rate)}">${pct(item.rate)}</span>
+      </div>
+      <div class="rm-breakdown-values">
+        <span><small>1BD</small><b>${formatNumber(item.total)}</b></span>
+        <span class="rm-signed"><small>${t('signedPlural')}</small><b>${formatNumber(item.signed)}</b></span>
+        <span class="rm-unsigned"><small>${t('unsignedPlural')}</small><b>${formatNumber(item.unsigned)}</b></span>
+      </div>
+    </button>`).join('');
+  box.querySelectorAll('.rm-breakdown-row').forEach(btn=>btn.addEventListener('click',()=>{
+    $('filterRM').value=btn.dataset.rm;
+    applyFilters();
+  }));
 }
 
 function renderStatusChart(rows){

@@ -5,17 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#ffffff" />
   <title>Relatório 1BD</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=4" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="../static/styles.css" />
+  
 </head>
 <body>
   <div class="app-shell">
     <header class="topbar">
       <div class="brand-wrap">
         <div class="logos" aria-label="J&T Express e TikTok" data-i18n-aria-label="logosAria">
-          <img class="logo-jt" src="{{ url_for('static', filename='assets/jt-logo.svg') }}" alt="J&T Express" />
+          <img class="logo-jt" src="../static/assets/jt-logo.svg" alt="J&T Express" />
           <span class="logo-divider"></span>
-          <img class="logo-tiktok" src="{{ url_for('static', filename='assets/tiktok-logo.png') }}" alt="TikTok" />
+          <img class="logo-tiktok" src="../static/assets/tiktok-logo.png" alt="TikTok" />
         </div>
         <div class="title-block">
           <div class="eyebrow" data-i18n="operationEyebrow">OPERAÇÃO • 1BD</div>
@@ -93,19 +93,7 @@
               <div><span class="section-kicker" data-i18n="performance">DESEMPENHO</span><h3 data-i18n="signatureRateByRM">Taxa de assinatura por RM</h3></div>
               <span class="panel-note" data-i18n="clickBarToFilter">Clique em uma barra para filtrar</span>
             </div>
-            <div class="rm-performance-body">
-              <div class="chart-wrap chart-tall rm-chart-wrap"><canvas id="rmChart"></canvas></div>
-              <aside class="rm-breakdown" aria-label="Detalhamento por RM" data-i18n-aria-label="rmBreakdownAria">
-                <div class="rm-breakdown-head">
-                  <div>
-                    <span class="section-kicker" data-i18n="rmBreakdownKicker">VOLUME</span>
-                    <h4 data-i18n="rmBreakdownTitle">Dados por RM</h4>
-                  </div>
-                  <span data-i18n="rmBreakdownHint">1BD, assinados e não assinados</span>
-                </div>
-                <div class="rm-breakdown-list" id="rmBreakdownList"></div>
-              </aside>
-            </div>
+            <div class="chart-wrap chart-tall"><canvas id="rmChart"></canvas></div>
           </article>
           <article class="panel chart-panel">
             <div class="panel-head"><div><span class="section-kicker" data-i18n="status">STATUS</span><h3 data-i18n="tickets">Chamados</h3></div></div>
@@ -285,6 +273,6 @@
   </div>
 
   <div class="toast" id="toast"></div>
-  <script src="{{ url_for('static', filename='app.js') }}?v=4"></script>
+  
 </body>
 </html>

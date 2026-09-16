@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#ffffff" />
   <title>Relatório 1BD</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=4" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -27,16 +27,15 @@
         <div class="last-update" id="lastUpdate" data-i18n="loadingData">Carregando dados...</div>
         <button class="btn btn-language" id="languageToggle" type="button" aria-label="切换到简体中文" title="切换到简体中文">中文</button>
         <button class="btn btn-primary" id="openUpdateModal" type="button">
-          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66L20 8"/><path d="M20 4v4h-4"/></svg>
-          <span data-i18n="updateData">Atualizar dados</span>
+          <span class="btn-icon">↻</span> <span data-i18n="updateData">Atualizar dados</span>
         </button>
       </div>
     </header>
 
     <nav class="tabs" aria-label="Navegação principal" data-i18n-aria-label="mainNavAria">
-      <button class="tab active" data-tab="dashboard"><svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h6V4H4z"/><path d="M14 20h6v-9h-6z"/><path d="M4 20h6v-3H4z"/><path d="M14 7h6V4h-6z"/></svg><span data-i18n="dashboard">Dashboard</span></button>
-      <button class="tab" data-tab="editor"><svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M4 10h16M9 5v14"/></svg><span data-i18n="editData">Editar dados</span></button>
-      <button class="tab" data-tab="update"><svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M5 20h14"/></svg><span data-i18n="updateData">Atualizar dados</span></button>
+      <button class="tab active" data-tab="dashboard" data-i18n="dashboard">Dashboard</button>
+      <button class="tab" data-tab="editor" data-i18n="editData">Editar dados</button>
+      <button class="tab" data-tab="update" data-i18n="updateData">Atualizar dados</button>
     </nav>
 
     <main>
@@ -47,7 +46,7 @@
               <span class="section-kicker" data-i18n="filters">FILTROS</span>
               <h2 data-i18n="refineAnalysis">Refine a análise</h2>
             </div>
-            <button class="btn btn-ghost" id="clearFilters" type="button"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18"/><path d="M8 12h8"/><path d="M10 19h4"/><path d="m18 16 3 3m0-3-3 3"/></svg><span data-i18n="clearFilters">Limpar filtros</span></button>
+            <button class="btn btn-ghost" id="clearFilters" type="button" data-i18n="clearFilters">Limpar filtros</button>
           </div>
           <div class="filters-grid">
             <label class="field"><span data-i18n="regional">Regional</span><select id="filterRegional"><option value="" data-i18n="allFeminine">Todas</option></select></label>
@@ -64,17 +63,17 @@
 
         <section class="kpi-grid">
           <article class="kpi-card kpi-red">
-            <div class="kpi-top"><span class="kpi-label" data-i18n="quantity1bd">Quantidade de 1BD</span><span class="kpi-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h10l4 4v12H5z"/><path d="M15 4v5h5"/><path d="M8 13h8M8 17h5"/></svg></span></div>
+            <div class="kpi-top"><span class="kpi-label" data-i18n="quantity1bd">Quantidade de 1BD</span><span class="kpi-icon">1B</span></div>
             <strong id="kpi1bd">—</strong>
             <span class="kpi-foot" id="kpi1bdFoot" data-i18n="recordsFilteredPeriod">registros no período filtrado</span>
           </article>
           <article class="kpi-card kpi-dark">
-            <div class="kpi-top"><span class="kpi-label" data-i18n="deliveredPackages">Pacotes Entregues</span><span class="kpi-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg></span></div>
+            <div class="kpi-top"><span class="kpi-label" data-i18n="deliveredPackages">Pacotes Entregues</span><span class="kpi-icon">✓</span></div>
             <strong id="kpiDelivered">—</strong>
             <span class="kpi-foot" id="kpiDeliveredFoot" data-i18n="uniqueSignedShipments">remessas únicas assinadas</span>
           </article>
           <article class="kpi-card kpi-cyan">
-            <div class="kpi-top"><span class="kpi-label" data-i18n="openTickets">Chamados em Aberto</span><span class="kpi-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 17h.01"/></svg></span></div>
+            <div class="kpi-top"><span class="kpi-label" data-i18n="openTickets">Chamados em Aberto</span><span class="kpi-icon">!</span></div>
             <strong id="kpiOpen">—</strong>
             <span class="kpi-foot" id="kpiOpenFoot" data-i18n="pendingProcessing">pendentes ou em processamento</span>
           </article>
@@ -93,19 +92,7 @@
               <div><span class="section-kicker" data-i18n="performance">DESEMPENHO</span><h3 data-i18n="signatureRateByRM">Taxa de assinatura por RM</h3></div>
               <span class="panel-note" data-i18n="clickBarToFilter">Clique em uma barra para filtrar</span>
             </div>
-            <div class="rm-performance-body">
-              <div class="chart-wrap chart-tall rm-chart-wrap"><canvas id="rmChart"></canvas></div>
-              <aside class="rm-breakdown" aria-label="Detalhamento por RM" data-i18n-aria-label="rmBreakdownAria">
-                <div class="rm-breakdown-head">
-                  <div>
-                    <span class="section-kicker" data-i18n="rmBreakdownKicker">VOLUME</span>
-                    <h4 data-i18n="rmBreakdownTitle">Dados por RM</h4>
-                  </div>
-                  <span data-i18n="rmBreakdownHint">1BD, assinados e não assinados</span>
-                </div>
-                <div class="rm-breakdown-list" id="rmBreakdownList"></div>
-              </aside>
-            </div>
+            <div class="chart-wrap chart-tall"><canvas id="rmChart"></canvas></div>
           </article>
           <article class="panel chart-panel">
             <div class="panel-head"><div><span class="section-kicker" data-i18n="status">STATUS</span><h3 data-i18n="tickets">Chamados</h3></div></div>
@@ -137,7 +124,7 @@
             <div><span class="section-kicker" data-i18n="details">DETALHAMENTO</span><h3 data-i18n="rankingByBase">Ranking por Base de Entrega</h3></div>
             <div class="table-tools">
               <input id="tableSearch" class="search-input" type="search" placeholder="Buscar base ou RM..." data-i18n-placeholder="searchBaseOrRM" />
-              <button class="btn btn-secondary" id="exportCsv" type="button"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg><span data-i18n="exportCsv">Exportar CSV</span></button>
+              <button class="btn btn-secondary" id="exportCsv" type="button" data-i18n="exportCsv">Exportar CSV</button>
             </div>
           </div>
           <div class="table-scroll">
@@ -181,7 +168,7 @@
                 <option value="200">200</option>
               </select>
             </label>
-            <button class="btn btn-ghost" id="editorReload" type="button"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66L20 8"/><path d="M20 4v4h-4"/></svg><span data-i18n="reloadSpreadsheet">Recarregar</span></button>
+            <button class="btn btn-ghost" id="editorReload" type="button" data-i18n="reloadSpreadsheet">Recarregar</button>
           </div>
 
           <div class="editor-table-wrap">
@@ -195,9 +182,9 @@
 
           <div class="editor-footer">
             <div class="editor-pagination">
-              <button class="btn btn-ghost pagination-btn" id="editorPrev" type="button"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span data-i18n="previousPage">Anterior</span></button>
+              <button class="btn btn-ghost" id="editorPrev" type="button" data-i18n="previousPage">Anterior</button>
               <span id="editorPageInfo">—</span>
-              <button class="btn btn-ghost pagination-btn" id="editorNext" type="button"><span data-i18n="nextPage">Próxima</span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+              <button class="btn btn-ghost" id="editorNext" type="button" data-i18n="nextPage">Próxima</button>
             </div>
             <span class="editor-total" id="editorTotal">—</span>
           </div>
@@ -208,8 +195,8 @@
               <span data-i18n="saveDirectHint">A mesma senha de atualização é obrigatória. Um backup é criado antes de salvar.</span>
             </div>
             <label class="field editor-password"><span data-i18n="password">Senha</span><input id="editorPassword" type="password" autocomplete="current-password" placeholder="Digite a senha" data-i18n-placeholder="enterPassword" /></label>
-            <button class="btn btn-ghost" id="editorDiscard" type="button"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg><span data-i18n="discardChanges">Descartar alterações</span></button>
-            <button class="btn btn-primary" id="editorSave" type="button" disabled><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h12l2 2v16H5z"/><path d="M8 3v6h8V3M8 17h8"/></svg><span data-i18n="saveChanges">Salvar alterações</span></button>
+            <button class="btn btn-ghost" id="editorDiscard" type="button" data-i18n="discardChanges">Descartar alterações</button>
+            <button class="btn btn-primary" id="editorSave" type="button" data-i18n="saveChanges" disabled>Salvar alterações</button>
           </div>
           <div class="form-message" id="editorMessage"></div>
         </section>
@@ -218,7 +205,7 @@
       <section class="tab-panel" id="tab-update">
         <div class="update-layout">
           <section class="panel update-card">
-            <div class="update-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66L20 8"/><path d="M20 4v4h-4"/></svg></div>
+            <div class="update-icon">↻</div>
             <span class="section-kicker" data-i18n="updateUpper">ATUALIZAÇÃO</span>
             <h2 data-i18n="updateBaseTitle">Atualizar base do Relatório 1BD</h2>
             <p data-i18n-html="updateBaseDescription">Envie a nova planilha <strong>.xlsx</strong>. A troca só é aplicada após validação da estrutura e confirmação da senha.</p>
@@ -226,13 +213,13 @@
             <form id="updateFormPage" class="update-form">
               <label class="drop-zone" id="dropZonePage">
                 <input type="file" name="file" accept=".xlsx" required />
-                <span class="drop-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M5 20h14"/></svg></span>
+                <span class="drop-icon">＋</span>
                 <strong data-i18n="selectSpreadsheet">Selecionar planilha</strong>
                 <small data-i18n="dragFileHere">ou arraste o arquivo para esta área</small>
                 <span class="selected-file" data-file-name data-i18n="noFileSelected">Nenhum arquivo selecionado</span>
               </label>
               <label class="field password-field"><span data-i18n="passwordToApply">Senha para aplicar a atualização</span><input type="password" name="password" autocomplete="current-password" placeholder="Digite a senha" data-i18n-placeholder="enterPassword" required /></label>
-              <button class="btn btn-primary btn-large" type="submit"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66L20 8"/><path d="M20 4v4h-4"/></svg><span data-i18n="validateAndUpdate">Validar e atualizar dados</span></button>
+              <button class="btn btn-primary btn-large" type="submit" data-i18n="validateAndUpdate">Validar e atualizar dados</button>
             </form>
             <div class="form-message" data-form-message></div>
           </section>
@@ -265,26 +252,26 @@
 
   <div class="modal-backdrop" id="updateModal" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="updateModalTitle">
-      <button class="modal-close" id="closeUpdateModal" type="button" aria-label="Fechar" data-i18n-aria-label="close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+      <button class="modal-close" id="closeUpdateModal" type="button" aria-label="Fechar" data-i18n-aria-label="close">×</button>
       <span class="section-kicker" data-i18n="updateDataUpper">ATUALIZAR DADOS</span>
       <h2 id="updateModalTitle" data-i18n="importNewSpreadsheet">Importar nova planilha 1BD</h2>
       <p data-i18n="spreadsheetValidated">A planilha será validada antes de substituir os dados atuais.</p>
       <form id="updateFormModal" class="update-form compact">
         <label class="drop-zone" id="dropZoneModal">
           <input type="file" name="file" accept=".xlsx" required />
-          <span class="drop-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M5 20h14"/></svg></span>
+          <span class="drop-icon">＋</span>
           <strong data-i18n="addSpreadsheet">Adicionar planilha</strong>
           <small data-i18n="xlsxRequired">Arquivo .xlsx obrigatório</small>
           <span class="selected-file" data-file-name data-i18n="noFileSelected">Nenhum arquivo selecionado</span>
         </label>
         <label class="field password-field"><span data-i18n="password">Senha</span><input type="password" name="password" autocomplete="current-password" placeholder="Digite a senha" data-i18n-placeholder="enterPassword" required /></label>
-        <button class="btn btn-primary btn-large" type="submit"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66L20 8"/><path d="M20 4v4h-4"/></svg><span data-i18n="applyUpdate">Aplicar atualização</span></button>
+        <button class="btn btn-primary btn-large" type="submit" data-i18n="applyUpdate">Aplicar atualização</button>
       </form>
       <div class="form-message" data-form-message></div>
     </div>
   </div>
 
   <div class="toast" id="toast"></div>
-  <script src="{{ url_for('static', filename='app.js') }}?v=4"></script>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>
