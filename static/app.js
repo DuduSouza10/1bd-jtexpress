@@ -1,5 +1,5 @@
 const state = {
-  all: [], filtered: [], meta: {}, charts: {}, ranking: [], lang: 'pt',
+  all: [], filtered: [], meta: {}, ranking: [], lang: 'pt',
   filters: { regional:'', rm:'', base:'', status:'', assinado:'', time:'', from:'', to:'' },
   editor: {loaded:false, page:1, perPage:50, pages:1, total:0, query:'', headers:[], rows:[], pending:new Map(), searchTimer:null}
 };
@@ -91,8 +91,9 @@ const I18N = {
     trendTitle: '1BD e assinaturas por data de registro',
     basedOnRegistrationDate: 'Baseado na data de registro do chamado',
     details: 'DETALHAMENTO',
-    rankingByBase: 'Ranking por Base de Entrega',
-    searchBaseOrRM: 'Buscar base ou RM...',
+    rankingByRM: 'Ranking por RM',
+    searchRMOrRegional: 'Buscar RM ou Regional...',
+    baseCount: 'Bases',
     exportCsv: 'Exportar CSV',
     base: 'Base',
     signedPlural: 'Assinados',
@@ -150,7 +151,7 @@ const I18N = {
     chartSignatures: 'Assinaturas',
     chartSignedPlural: 'Assinados',
     noRecordsFound: 'Nenhum registro encontrado.',
-    tableFooter: '{count} bases exibidas • ranking por quantidade de 1BD',
+    tableFooter: '{count} RMs exibidos • ranking por quantidade de 1BD',
     csvPosition: 'Posição',
     csvNotSigned: 'Não assinados',
     csvSignatureRate: 'Taxa de assinatura',
@@ -262,8 +263,9 @@ const I18N = {
     trendTitle: '按登记日期统计 1BD 与签收',
     basedOnRegistrationDate: '基于工单登记日期',
     details: '明细',
-    rankingByBase: '派送网点排名',
-    searchBaseOrRM: '搜索网点或 RM...',
+    rankingByRM: 'RM 排名',
+    searchRMOrRegional: '搜索 RM 或区域...',
+    baseCount: '网点数',
     exportCsv: '导出 CSV',
     base: '网点',
     signedPlural: '已签收',
@@ -321,7 +323,7 @@ const I18N = {
     chartSignatures: '签收数量',
     chartSignedPlural: '已签收',
     noRecordsFound: '未找到记录。',
-    tableFooter: '显示 {count} 个网点 • 按 1BD 数量排名',
+    tableFooter: '显示 {count} 个 RM • 按 1BD 数量排名',
     csvPosition: '排名',
     csvNotSigned: '未签收',
     csvSignatureRate: '签收率',
@@ -544,7 +546,7 @@ function applyFilters(){
 }
 
 function renderAll(){
-  renderKPIs(); renderInsights(); renderFilterNote(); renderCharts(); renderRanking();
+  renderKPIs(); renderInsights(); renderFilterNote(); renderRanking();
 }
 
 function renderKPIs(){
@@ -589,149 +591,39 @@ function renderFilterNote(){
 function groupBy(rows,key){
   const m=new Map(); rows.forEach(r=>{const k=r[key]||t('noInfo'); if(!m.has(k)) m.set(k,[]); m.get(k).push(r)}); return m;
 }
-function destroyChart(name){ if(state.charts[name]){state.charts[name].destroy(); delete state.charts[name];} }
-function commonTooltip(){ return {backgroundColor:'#14171d',borderColor:'rgba(255,255,255,.08)',borderWidth:1,padding:12,cornerRadius:10,titleFont:{weight:'700'},bodyFont:{size:12},displayColors:true,boxPadding:4}; }
-
-function renderCharts(){
-  const rows=state.filtered;
-  renderRMChart(rows); renderStatusChart(rows); renderBaseChart(rows); renderTimeChart(rows); renderTrendChart(rows);
-}
-
-function renderRMChart(rows){
-  destroyChart('rm');
-  const g=groupBy(rows,'rm');
-  const items=[...g].map(([name,rs])=>{
-    const signed=rs.filter(r=>normalizePlain(r.assinado)==='sim').length;
-    return {name,total:rs.length,signed,unsigned:rs.length-signed,rate:rs.length?signed/rs.length*100:0};
-  }).sort((a,b)=>b.rate-a.rate || b.total-a.total);
-
-  renderRMBreakdown(items);
-
-  const ctx=$('rmChart');
-  state.charts.rm=new Chart(ctx,{
-    type:'bar',
-    data:{
-      labels:items.map(x=>x.name),
-      datasets:[{
-        label:t('chartSignatureRate'),
-        data:items.map(x=>x.rate),
-        backgroundColor:'#e10618',
-        hoverBackgroundColor:'#c90016',
-        borderRadius:8,
-        borderSkipped:false,
-        barThickness:18
-      }]
-    },
-    options:{
-      indexAxis:'y',maintainAspectRatio:false,responsive:true,
-      layout:{padding:{right:8}},
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          ...commonTooltip(),
-          callbacks:{
-            label:c=>[
-              `${t('chartSignatureRate')}: ${pct(c.raw)}`,
-              `1BD: ${formatNumber(items[c.dataIndex].total)}`,
-              `${t('signedPlural')}: ${formatNumber(items[c.dataIndex].signed)}`,
-              `${t('unsignedPlural')}: ${formatNumber(items[c.dataIndex].unsigned)}`
-            ]
-          }
-        }
-      },
-      scales:{
-        x:{beginAtZero:true,max:100,grid:{color:'#f0f1f4'},ticks:{callback:v=>`${v}%`}},
-        y:{grid:{display:false},ticks:{font:{size:11},padding:8}}
-      },
-      onClick:(_,els)=>{if(els.length){$('filterRM').value=items[els[0].index].name;applyFilters();}}
-    }
-  });
-}
-
-function renderRMBreakdown(items){
-  const box=$('rmBreakdownList');
-  if(!box) return;
-  if(!items.length){
-    box.innerHTML=`<div class="rm-breakdown-empty">${t('noRecordsFound')}</div>`;
-    return;
-  }
-  box.innerHTML=items.map(item=>`
-    <button type="button" class="rm-breakdown-row" data-rm="${escapeHtml(item.name)}" title="${escapeHtml(t('clickBarToFilter'))}">
-      <div class="rm-breakdown-rowtop">
-        <strong>${escapeHtml(item.name)}</strong>
-        <span class="rm-rate-pill ${rateClass(item.rate)}">${pct(item.rate)}</span>
-      </div>
-      <div class="rm-breakdown-values">
-        <span><small>1BD</small><b>${formatNumber(item.total)}</b></span>
-        <span class="rm-signed"><small>${t('signedPlural')}</small><b>${formatNumber(item.signed)}</b></span>
-        <span class="rm-unsigned"><small>${t('unsignedPlural')}</small><b>${formatNumber(item.unsigned)}</b></span>
-      </div>
-    </button>`).join('');
-  box.querySelectorAll('.rm-breakdown-row').forEach(btn=>btn.addEventListener('click',()=>{
-    $('filterRM').value=btn.dataset.rm;
-    applyFilters();
-  }));
-}
-
-function renderStatusChart(rows){
-  destroyChart('status');
-  const counts=[...groupBy(rows,'statusCurto')].map(([name,rs])=>({name,value:rs.length})).sort((a,b)=>b.value-a.value);
-  const colors=['#191c22','#e10618','#20ddd7','#ff6680','#8d94a0','#d7dae0'];
-  state.charts.status=new Chart($('statusChart'),{type:'doughnut',data:{labels:counts.map(x=>translateStatus(x.name)),datasets:[{data:counts.map(x=>x.value),backgroundColor:colors.slice(0,counts.length),borderWidth:0,hoverOffset:4}]},options:{maintainAspectRatio:false,cutout:'70%',plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',boxWidth:7,font:{size:10},padding:14}},tooltip:{...commonTooltip(),callbacks:{label:c=>`${c.label}: ${formatNumber(c.raw)} (${rows.length?pct(c.raw/rows.length*100):pct(0)})`}}},onClick:(_,els)=>{if(els.length){$('filterStatus').value=counts[els[0].index].name;applyFilters();}}}});
-}
-
-function renderBaseChart(rows){
-  destroyChart('base');
-  const items=[...groupBy(rows,'base')].map(([name,rs])=>({name,value:rs.length})).sort((a,b)=>b.value-a.value).slice(0,10);
-  state.charts.base=new Chart($('baseChart'),{type:'bar',data:{labels:items.map(x=>x.name),datasets:[{label:'1BD',data:items.map(x=>x.value),backgroundColor:'#242831',borderRadius:7,borderSkipped:false,barThickness:18}]},options:{indexAxis:'y',maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:commonTooltip()},scales:{x:{beginAtZero:true,grid:{color:'#f0f1f4'},ticks:{precision:0}},y:{grid:{display:false},ticks:{font:{size:10}}}},onClick:(_,els)=>{if(els.length){$('filterBase').value=items[els[0].index].name;applyFilters();}}}});
-}
-
-function renderTimeChart(rows){
-  destroyChart('time');
-  const signed=rows.filter(r=>normalizePlain(r.assinado)==='sim' && Number.isFinite(r.tempoAssinaturaHoras));
-  const buckets=[
-    {label:t('upTo6h'),min:0,max:6},
-    {label:t('range6to12'),min:6,max:12},
-    {label:t('range12to24'),min:12,max:24},
-    {label:t('range24to48'),min:24,max:48},
-    {label:t('over48h'),min:48,max:Infinity}
-  ];
-  const values=buckets.map(b=>signed.filter(r=>r.tempoAssinaturaHoras>=b.min && r.tempoAssinaturaHoras<b.max).length);
-  state.charts.time=new Chart($('timeChart'),{type:'bar',data:{labels:buckets.map(b=>b.label),datasets:[{label:t('chartSignatures'),data:values,backgroundColor:['#20ddd7','#72e9e5','#5b616d','#ff7890','#e10618'],borderRadius:7,borderSkipped:false}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:commonTooltip()},scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'#f0f1f4'},ticks:{precision:0}}}}});
-}
-
-function renderTrendChart(rows){
-  destroyChart('trend');
-  const m=new Map();
-  rows.forEach(r=>{const d=rowDate(r); if(!d)return; if(!m.has(d))m.set(d,{total:0,signed:0}); const o=m.get(d);o.total++;if(normalizePlain(r.assinado)==='sim')o.signed++;});
-  const dates=[...m.keys()].sort();
-  const labels=dates.map(d=>dateOnlyBR(d));
-  state.charts.trend=new Chart($('trendChart'),{type:'line',data:{labels,datasets:[{label:'1BD',data:dates.map(d=>m.get(d).total),borderColor:'#242831',backgroundColor:'rgba(36,40,49,.045)',fill:true,tension:.3,pointRadius:3,pointHoverRadius:5},{label:t('chartSignedPlural'),data:dates.map(d=>m.get(d).signed),borderColor:'#e10618',backgroundColor:'rgba(225,6,24,.055)',fill:true,tension:.3,pointRadius:3,pointHoverRadius:5}]},options:{maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top',align:'end',labels:{usePointStyle:true,boxWidth:7}},tooltip:commonTooltip()},scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'#f0f1f4'},ticks:{precision:0}}}}});
-}
-
 function buildRanking(){
-  const groups=groupBy(state.filtered,'base');
-  return [...groups].map(([base,rs])=>{
+  const groups=groupBy(state.filtered,'rm');
+  return [...groups].map(([rm,rs])=>{
     const signed=rs.filter(r=>normalizePlain(r.assinado)==='sim');
     const valid=signed.map(r=>r.tempoAssinaturaHoras).filter(Number.isFinite);
-    return {base,regional:mode(rs.map(r=>r.regional)),rm:mode(rs.map(r=>r.rm)),total:rs.length,signed:signed.length,unsigned:rs.length-signed.length,rate:rs.length?signed.length/rs.length*100:0,open:rs.filter(r=>r.aberto).length,avg:valid.length?valid.reduce((a,b)=>a+b,0)/valid.length:NaN};
-  }).sort((a,b)=>b.total-a.total || a.base.localeCompare(b.base,locale()));
+    return {
+      rm,
+      regional:mode(rs.map(r=>r.regional)),
+      bases:new Set(rs.map(r=>r.base).filter(Boolean)).size,
+      total:rs.length,
+      signed:signed.length,
+      unsigned:rs.length-signed.length,
+      rate:rs.length?signed.length/rs.length*100:0,
+      open:rs.filter(r=>r.aberto).length,
+      avg:valid.length?valid.reduce((a,b)=>a+b,0)/valid.length:NaN
+    };
+  }).sort((a,b)=>b.total-a.total || a.rm.localeCompare(b.rm,locale()));
 }
 function mode(values){ const c=new Map();values.forEach(v=>c.set(v,(c.get(v)||0)+1));return [...c].sort((a,b)=>b[1]-a[1])[0]?.[0]||'—'; }
 function rateClass(v){return v>=80?'high':v>=50?'mid':'low'}
 function renderRanking(){
   state.ranking=buildRanking();
   const q=normalize($('tableSearch').value);
-  const rows=q?state.ranking.filter(r=>normalize(`${r.base} ${r.rm} ${r.regional}`).includes(q)):state.ranking;
-  $('rankingBody').innerHTML=rows.map((r,i)=>`<tr><td><span class="rank-badge">${i+1}</span></td><td><strong>${escapeHtml(r.base)}</strong></td><td>${escapeHtml(r.regional)}</td><td>${escapeHtml(r.rm)}</td><td><strong>${formatNumber(r.total)}</strong></td><td>${formatNumber(r.signed)}</td><td>${formatNumber(r.unsigned)}</td><td><span class="rate ${rateClass(r.rate)}">${pct(r.rate)}</span></td><td>${formatNumber(r.open)}</td><td class="muted-cell">${hours(r.avg)}</td></tr>`).join('') || `<tr><td colspan="10" style="text-align:center;padding:28px;color:#858a94">${t('noRecordsFound')}</td></tr>`;
+  const rows=q?state.ranking.filter(r=>normalize(`${r.rm} ${r.regional}`).includes(q)):state.ranking;
+  $('rankingBody').innerHTML=rows.map((r,i)=>`<tr><td><span class="rank-badge">${i+1}</span></td><td><strong>${escapeHtml(r.rm)}</strong></td><td>${escapeHtml(r.regional)}</td><td>${formatNumber(r.bases)}</td><td><strong>${formatNumber(r.total)}</strong></td><td>${formatNumber(r.signed)}</td><td>${formatNumber(r.unsigned)}</td><td><span class="rate ${rateClass(r.rate)}">${pct(r.rate)}</span></td><td>${formatNumber(r.open)}</td><td class="muted-cell">${hours(r.avg)}</td></tr>`).join('') || `<tr><td colspan="10" style="text-align:center;padding:28px;color:#858a94">${t('noRecordsFound')}</td></tr>`;
   $('tableFooter').textContent=t('tableFooter',{count:formatNumber(rows.length)});
 }
 
 function exportCSV(){
-  const rows=[[t('csvPosition'),t('base'),t('regional'),'RM','1BD',t('signedPlural'),t('csvNotSigned'),t('csvSignatureRate'),t('csvOpen'),t('csvAvgHours')]];
-  state.ranking.forEach((r,i)=>rows.push([i+1,r.base,r.regional,r.rm,r.total,r.signed,r.unsigned,r.rate.toFixed(2),r.open,Number.isFinite(r.avg)?r.avg.toFixed(2):'']));
+  const rows=[[t('csvPosition'),'RM',t('regional'),t('baseCount'),'1BD',t('signedPlural'),t('csvNotSigned'),t('csvSignatureRate'),t('csvOpen'),t('csvAvgHours')]];
+  state.ranking.forEach((r,i)=>rows.push([i+1,r.rm,r.regional,r.bases,r.total,r.signed,r.unsigned,r.rate.toFixed(2),r.open,Number.isFinite(r.avg)?r.avg.toFixed(2):'']));
   const csv='\ufeff'+rows.map(row=>row.map(v=>`"${String(v).replaceAll('"','""')}"`).join(';')).join('\r\n');
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=`ranking_1bd_${new Date().toISOString().slice(0,10)}.csv`;document.body.appendChild(a);a.click();URL.revokeObjectURL(a.href);a.remove();
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=`ranking_rm_1bd_${new Date().toISOString().slice(0,10)}.csv`;document.body.appendChild(a);a.click();URL.revokeObjectURL(a.href);a.remove();
 }
 
 function updateSourceInfo(){
@@ -871,17 +763,7 @@ function clearFilters(){
   applyFilters();
 }
 
-function configureChartDefaults(){
-  if(typeof Chart === 'undefined') return;
-  Chart.defaults.color = '#737a86';
-  Chart.defaults.font.family = 'Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
-  Chart.defaults.font.size = 11;
-  Chart.defaults.borderColor = '#eef0f3';
-  Chart.defaults.animation.duration = 420;
-}
-
 function init(){
-  configureChartDefaults();
   const stored = localStorage.getItem('relatorio1bd_lang');
   setLanguage(stored === 'zh' ? 'zh' : 'pt', false);
   bindTabs();

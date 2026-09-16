@@ -288,3 +288,9 @@ html[lang="zh-CN"] .section-kicker,html[lang="zh-CN"] .eyebrow{letter-spacing:.0
   .editor-head{flex-direction:column}.editor-summary{justify-content:flex-start}.editor-toolbar{grid-template-columns:1fr}.editor-footer{align-items:flex-start;flex-direction:column}.editor-savebar{position:static;grid-template-columns:1fr}.editor-save-copy{grid-column:auto}.editor-pagination{width:100%;justify-content:space-between}.pagination-btn{min-width:0}.editor-pagination .btn{padding:9px 11px}.kpi-card strong{font-size:39px}
   .rm-breakdown-list{grid-template-columns:1fr;max-height:300px}.rm-breakdown-head{align-items:flex-end}.rm-breakdown-values small{font-size:9.5px}
 }
+
+
+/* Simplified dashboard: RM ranking is the primary analysis surface */
+#tab-dashboard > .table-panel{margin-top:14px}
+#tab-dashboard > .table-panel .table-scroll table{min-width:980px}
+#tab-dashboard > .table-panel .table-scroll td:nth-child(2){font-weight:800;color:var(--ink)}

@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#ffffff" />
   <title>Relatório 1BD</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=4" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=5" />
 </head>
 <body>
   <div class="app-shell">
@@ -87,56 +86,11 @@
           <div><span data-i18n="rmsInFilter">RMs no filtro</span><strong id="insightRMs">—</strong></div>
         </section>
 
-        <section class="charts-grid charts-grid-main">
-          <article class="panel chart-panel chart-wide">
-            <div class="panel-head">
-              <div><span class="section-kicker" data-i18n="performance">DESEMPENHO</span><h3 data-i18n="signatureRateByRM">Taxa de assinatura por RM</h3></div>
-              <span class="panel-note" data-i18n="clickBarToFilter">Clique em uma barra para filtrar</span>
-            </div>
-            <div class="rm-performance-body">
-              <div class="chart-wrap chart-tall rm-chart-wrap"><canvas id="rmChart"></canvas></div>
-              <aside class="rm-breakdown" aria-label="Detalhamento por RM" data-i18n-aria-label="rmBreakdownAria">
-                <div class="rm-breakdown-head">
-                  <div>
-                    <span class="section-kicker" data-i18n="rmBreakdownKicker">VOLUME</span>
-                    <h4 data-i18n="rmBreakdownTitle">Dados por RM</h4>
-                  </div>
-                  <span data-i18n="rmBreakdownHint">1BD, assinados e não assinados</span>
-                </div>
-                <div class="rm-breakdown-list" id="rmBreakdownList"></div>
-              </aside>
-            </div>
-          </article>
-          <article class="panel chart-panel">
-            <div class="panel-head"><div><span class="section-kicker" data-i18n="status">STATUS</span><h3 data-i18n="tickets">Chamados</h3></div></div>
-            <div class="chart-wrap"><canvas id="statusChart"></canvas></div>
-          </article>
-        </section>
-
-        <section class="charts-grid">
-          <article class="panel chart-panel">
-            <div class="panel-head"><div><span class="section-kicker" data-i18n="bases">BASES</span><h3 data-i18n="top10By1bd">Top 10 por quantidade de 1BD</h3></div><span class="panel-note" data-i18n="clickToFilter">Clique para filtrar</span></div>
-            <div class="chart-wrap chart-tall"><canvas id="baseChart"></canvas></div>
-          </article>
-          <article class="panel chart-panel">
-            <div class="panel-head"><div><span class="section-kicker" data-i18n="signatureUpper">ASSINATURA</span><h3 data-i18n="timeUntilSignature">Tempo até assinatura</h3></div></div>
-            <div class="chart-wrap chart-tall"><canvas id="timeChart"></canvas></div>
-          </article>
-        </section>
-
-        <section class="panel trend-panel">
-          <div class="panel-head">
-            <div><span class="section-kicker" data-i18n="evolution">EVOLUÇÃO</span><h3 data-i18n="trendTitle">1BD e assinaturas por data de registro</h3></div>
-            <span class="panel-note" data-i18n="basedOnRegistrationDate">Baseado na data de registro do chamado</span>
-          </div>
-          <div class="chart-wrap trend-chart"><canvas id="trendChart"></canvas></div>
-        </section>
-
         <section class="panel table-panel">
           <div class="panel-head table-head">
-            <div><span class="section-kicker" data-i18n="details">DETALHAMENTO</span><h3 data-i18n="rankingByBase">Ranking por Base de Entrega</h3></div>
+            <div><span class="section-kicker" data-i18n="details">DETALHAMENTO</span><h3 data-i18n="rankingByRM">Ranking por RM</h3></div>
             <div class="table-tools">
-              <input id="tableSearch" class="search-input" type="search" placeholder="Buscar base ou RM..." data-i18n-placeholder="searchBaseOrRM" />
+              <input id="tableSearch" class="search-input" type="search" placeholder="Buscar RM ou Regional..." data-i18n-placeholder="searchRMOrRegional" />
               <button class="btn btn-secondary" id="exportCsv" type="button"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg><span data-i18n="exportCsv">Exportar CSV</span></button>
             </div>
           </div>
@@ -144,7 +98,7 @@
             <table>
               <thead>
                 <tr>
-                  <th>#</th><th data-i18n="base">Base</th><th data-i18n="regional">Regional</th><th>RM</th><th>1BD</th><th data-i18n="signedPlural">Assinados</th><th data-i18n="unsignedPlural">Não assinados</th><th data-i18n="rate">Taxa</th><th data-i18n="openShort">Em aberto</th><th data-i18n="avgTime">Tempo médio</th>
+                  <th>#</th><th>RM</th><th data-i18n="regional">Regional</th><th data-i18n="baseCount">Bases</th><th>1BD</th><th data-i18n="signedPlural">Assinados</th><th data-i18n="unsignedPlural">Não assinados</th><th data-i18n="rate">Taxa</th><th data-i18n="openShort">Em aberto</th><th data-i18n="avgTime">Tempo médio</th>
                 </tr>
               </thead>
               <tbody id="rankingBody"></tbody>
@@ -285,6 +239,6 @@
   </div>
 
   <div class="toast" id="toast"></div>
-  <script src="{{ url_for('static', filename='app.js') }}?v=4"></script>
+  <script src="{{ url_for('static', filename='app.js') }}?v=5"></script>
 </body>
 </html>
