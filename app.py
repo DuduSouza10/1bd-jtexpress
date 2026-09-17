@@ -123,23 +123,45 @@ def editor_value(value: Any) -> str:
     return str(value)
 
 
-def load_editor_page(path: Path, query: str = "", page: int = 1, per_page: int = 50) -> dict[str, Any]:
+def load_editor_page(
+    path: Path,
+    query: str = "",
+    page: int = 1,
+    per_page: int = 50,
+    filters: dict[str, str] | None = None,
+) -> dict[str, Any]:
     if not path.exists():
         raise FileNotFoundError(f"Arquivo de dados não encontrado: {path}")
 
     wb = load_workbook(path, read_only=True, data_only=True)
     ws = find_sheet(wb)
+    columns = header_map(ws)
     headers = [clean_value(cell.value) or f"Coluna {idx}" for idx, cell in enumerate(ws[1], start=1)]
     max_col = len(headers)
     q = norm(query)
+    active = {key: clean_value(value) for key, value in (filters or {}).items() if clean_value(value)}
     matched: list[tuple[int, list[str]]] = []
+    options: dict[str, set[str]] = {"status": set(), "rm": set(), "base": set(), "assinado": set()}
 
     for row_number, values in enumerate(ws.iter_rows(min_row=2, max_col=max_col, values_only=True), start=2):
         display = [editor_value(v) for v in values]
+        row_filters = {
+            "status": clean_value(values[columns["status"] - 1]),
+            "rm": clean_value(values[columns["rm"] - 1]),
+            "base": clean_value(values[columns["base"] - 1]),
+            "assinado": clean_value(values[columns["assinado"] - 1]),
+        }
+        for key, value in row_filters.items():
+            if value:
+                options[key].add(value)
+
         if q and q not in norm(" | ".join(display)):
+            continue
+        if any(norm(row_filters.get(key, "")) != norm(value) for key, value in active.items()):
             continue
         matched.append((row_number, display))
 
+    max_row = ws.max_row
     wb.close()
     total = len(matched)
     pages = max(1, (total + per_page - 1) // per_page)
@@ -152,7 +174,8 @@ def load_editor_page(path: Path, query: str = "", page: int = 1, per_page: int =
         "headers": headers,
         "rows": [{"row": row_number, "values": values} for row_number, values in selected],
         "pagination": {"page": page, "perPage": per_page, "pages": pages, "total": total},
-        "meta": {"updatedAt": mtime.isoformat(timespec="seconds"), "maxRow": ws.max_row, "maxCol": max_col},
+        "filterOptions": {key: sorted(values, key=lambda item: norm(item)) for key, values in options.items()},
+        "meta": {"updatedAt": mtime.isoformat(timespec="seconds"), "maxRow": max_row, "maxCol": max_col},
     }
 
 
@@ -364,7 +387,19 @@ def api_editor():
         per_page = int(request.args.get("per_page", "50"))
         if per_page not in {25, 50, 100, 200}:
             per_page = 50
-        return jsonify(load_editor_page(DATA_FILE, query=query, page=page, per_page=per_page))
+        editor_filters = {
+            "status": request.args.get("status", "")[:500],
+            "rm": request.args.get("rm", "")[:500],
+            "base": request.args.get("base", "")[:500],
+            "assinado": request.args.get("assinado", "")[:100],
+        }
+        return jsonify(load_editor_page(
+            DATA_FILE,
+            query=query,
+            page=page,
+            per_page=per_page,
+            filters=editor_filters,
+        ))
     except Exception as exc:
         return jsonify({"error": str(exc)}), 500
 

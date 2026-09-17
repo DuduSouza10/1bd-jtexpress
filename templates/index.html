@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#ffffff" />
   <title>Relatório 1BD</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=5" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=6" />
 </head>
 <body>
   <div class="app-shell">
@@ -138,6 +138,25 @@
             <button class="btn btn-ghost" id="editorReload" type="button"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66L20 8"/><path d="M20 4v4h-4"/></svg><span data-i18n="reloadSpreadsheet">Recarregar</span></button>
           </div>
 
+          <div class="editor-filter-card">
+            <div class="editor-filter-head">
+              <div>
+                <span class="section-kicker" data-i18n="editorFiltersUpper">FILTROS DA EDIÇÃO</span>
+                <p data-i18n="editorFiltersHint">Filtre as linhas antes de editar para encontrar os registros com mais rapidez.</p>
+              </div>
+              <button class="btn btn-ghost btn-small" id="editorClearFilters" type="button">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18"/><path d="M8 12h8"/><path d="M10 19h4"/><path d="m18 16 3 3m0-3-3 3"/></svg>
+                <span data-i18n="clearFilters">Limpar filtros</span>
+              </button>
+            </div>
+            <div class="editor-filters-grid">
+              <label class="field"><span data-i18n="ticketStatus">Status do Chamado</span><select id="editorFilterStatus"><option value="" data-i18n="allMasculine">Todos</option></select></label>
+              <label class="field"><span>RM</span><select id="editorFilterRM"><option value="" data-i18n="allMasculine">Todos</option></select></label>
+              <label class="field"><span data-i18n="deliveryBase">Base de Entrega</span><select id="editorFilterBase"><option value="" data-i18n="allFeminine">Todas</option></select></label>
+              <label class="field"><span data-i18n="signature">Assinatura</span><select id="editorFilterAssinado"><option value="" data-i18n="allMasculine">Todos</option></select></label>
+            </div>
+          </div>
+
           <div class="editor-table-wrap">
             <table class="editor-table" id="editorTable">
               <thead id="editorHeadRow"></thead>
@@ -215,6 +234,10 @@
         </div>
       </section>
     </main>
+
+    <footer class="developer-credit" aria-label="Crédito de desenvolvimento">
+      Developed by: <strong>Eduardo Rodrigues</strong>
+    </footer>
   </div>
 
   <div class="modal-backdrop" id="updateModal" aria-hidden="true">
@@ -239,6 +262,6 @@
   </div>
 
   <div class="toast" id="toast"></div>
-  <script src="{{ url_for('static', filename='app.js') }}?v=5"></script>
+  <script src="{{ url_for('static', filename='app.js') }}?v=6"></script>
 </body>
 </html>

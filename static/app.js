@@ -1,7 +1,7 @@
 const state = {
   all: [], filtered: [], meta: {}, ranking: [], lang: 'pt',
   filters: { regional:'', rm:'', base:'', status:'', assinado:'', time:'', from:'', to:'' },
-  editor: {loaded:false, page:1, perPage:50, pages:1, total:0, query:'', headers:[], rows:[], pending:new Map(), searchTimer:null}
+  editor: {loaded:false, page:1, perPage:50, pages:1, total:0, query:'', headers:[], rows:[], pending:new Map(), searchTimer:null, filters:{status:'',rm:'',base:'',assinado:''}, filterOptions:{status:[],rm:[],base:[],assinado:[]}}
 };
 
 const I18N = {
@@ -23,6 +23,8 @@ const I18N = {
     pendingChanges: '{count} alteração(ões) pendente(s)',
     searchSpreadsheet: 'Buscar na planilha',
     searchSpreadsheetPlaceholder: 'Buscar pedido, base, RM...',
+    editorFiltersUpper: 'FILTROS DA EDIÇÃO',
+    editorFiltersHint: 'Filtre as linhas antes de editar para encontrar os registros com mais rapidez.',
     rowsPerPage: 'Linhas por página',
     reloadSpreadsheet: 'Recarregar',
     loadingSpreadsheet: 'Carregando planilha...',
@@ -195,6 +197,8 @@ const I18N = {
     pendingChanges: '有 {count} 项待保存更改',
     searchSpreadsheet: '搜索表格',
     searchSpreadsheetPlaceholder: '搜索工单、网点、RM...',
+    editorFiltersUpper: '编辑筛选',
+    editorFiltersHint: '先筛选记录，再进行编辑，可以更快找到需要修改的数据。',
     rowsPerPage: '每页行数',
     reloadSpreadsheet: '重新加载',
     loadingSpreadsheet: '正在加载表格...',
@@ -640,6 +644,30 @@ function toast(message,error=false){const el=$('toast');el.textContent=message;e
 
 
 function editorKey(row,col){ return `${row}:${col}`; }
+function editorFilterOptionLabel(kind,value){
+  if(kind==='status'){
+    const parts=String(value||'').split('|');
+    if(state.lang==='zh' && parts.length>1) return parts.slice(1).join('|').trim() || parts[0].trim();
+    return parts[0].trim();
+  }
+  if(kind==='assinado') return translateSignatureValue(value);
+  return value;
+}
+function populateEditorFilters(){
+  const config={
+    status:{id:'editorFilterStatus',all:'allMasculine'},
+    rm:{id:'editorFilterRM',all:'allMasculine'},
+    base:{id:'editorFilterBase',all:'allFeminine'},
+    assinado:{id:'editorFilterAssinado',all:'allMasculine'}
+  };
+  Object.entries(config).forEach(([kind,cfg])=>{
+    const select=$(cfg.id); if(!select) return;
+    const current=state.editor.filters[kind]||'';
+    const options=state.editor.filterOptions[kind]||[];
+    select.innerHTML=`<option value="">${escapeHtml(t(cfg.all))}</option>`+options.map(value=>`<option value="${escapeHtml(value)}">${escapeHtml(editorFilterOptionLabel(kind,value))}</option>`).join('');
+    select.value=current;
+  });
+}
 function updateEditorDirtyUI(){
   const badge=$('editorDirtyBadge'); const save=$('editorSave');
   if(!badge || !save) return;
@@ -656,6 +684,7 @@ function updateEditorPageMeta(){
   $('editorNext').disabled=state.editor.page>=state.editor.pages;
 }
 function renderEditor(){
+  populateEditorFilters();
   const head=$('editorHeadRow'), body=$('editorBody');
   if(!head || !body) return;
   head.innerHTML=`<tr><th class="editor-row-number">#</th>${state.editor.headers.map(h=>`<th>${escapeHtml(h).replaceAll('\n','<br>')}</th>`).join('')}</tr>`;
@@ -685,10 +714,12 @@ async function loadEditor(page=state.editor.page){
   const body=$('editorBody');
   if(body) body.innerHTML=`<tr><td class="editor-empty">${t('loadingSpreadsheet')}</td></tr>`;
   const params=new URLSearchParams({page:String(page),per_page:String(state.editor.perPage),q:state.editor.query});
+  Object.entries(state.editor.filters).forEach(([key,value])=>{if(value) params.set(key,value);});
   try{
     const res=await fetch(`/api/editor?${params.toString()}`,{cache:'no-store'}); const data=await res.json();
     if(!res.ok) throw new Error(data.error||t('editorLoadError'));
     state.editor.headers=data.headers||[]; state.editor.rows=data.rows||[];
+    state.editor.filterOptions=data.filterOptions||state.editor.filterOptions;
     state.editor.page=data.pagination?.page||1; state.editor.pages=data.pagination?.pages||1; state.editor.total=data.pagination?.total||0; state.editor.loaded=true;
     renderEditor();
   }catch(err){
@@ -713,6 +744,14 @@ function bindEditor(){
   if(!$('editorSearch')) return;
   $('editorSearch').addEventListener('input',()=>{clearTimeout(state.editor.searchTimer);state.editor.searchTimer=setTimeout(()=>{state.editor.query=$('editorSearch').value.trim();loadEditor(1);},300);});
   $('editorPerPage').addEventListener('change',()=>{state.editor.perPage=Number($('editorPerPage').value)||50;loadEditor(1);});
+  [['editorFilterStatus','status'],['editorFilterRM','rm'],['editorFilterBase','base'],['editorFilterAssinado','assinado']].forEach(([id,key])=>{
+    $(id)?.addEventListener('change',()=>{state.editor.filters[key]=$(id).value;loadEditor(1);});
+  });
+  $('editorClearFilters')?.addEventListener('click',()=>{
+    state.editor.filters={status:'',rm:'',base:'',assinado:''};
+    populateEditorFilters();
+    loadEditor(1);
+  });
   $('editorPrev').addEventListener('click',()=>{if(state.editor.page>1)loadEditor(state.editor.page-1);});
   $('editorNext').addEventListener('click',()=>{if(state.editor.page<state.editor.pages)loadEditor(state.editor.page+1);});
   $('editorReload').addEventListener('click',()=>loadEditor(state.editor.page));
